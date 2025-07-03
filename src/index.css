@@ -199,4 +199,25 @@
   .column-highlight {
     @apply bg-accent/20 transition-all duration-300;
   }
+
+  /* FinTrace specific animations */
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .animate-gradient-shift {
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
 }
