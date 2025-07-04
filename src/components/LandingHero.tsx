@@ -1,12 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Shield, TrendingUp, Users } from 'lucide-react';
 
 const LandingHero = () => {
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -14,6 +15,14 @@ const LandingHero = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleStartTracing = () => {
+    if (user) {
+      navigate('/analysis');
+    } else {
+      navigate('/signup');
+    }
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -65,7 +74,7 @@ const LandingHero = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
                 size="lg"
-                onClick={() => navigate('/signup')}
+                onClick={handleStartTracing}
                 className="bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white text-lg px-8 py-6 h-auto"
               >
                 Start Tracing Now

@@ -1,11 +1,20 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Shield } from 'lucide-react';
 
 const LandingCTA = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleGetStarted = () => {
+    if (user) {
+      navigate('/analysis');
+    } else {
+      navigate('/signup');
+    }
+  };
 
   return (
     <section className="py-20 relative">
@@ -34,7 +43,7 @@ const LandingCTA = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => navigate('/signup')}
+              onClick={handleGetStarted}
               className="bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white text-lg px-8 py-6 h-auto group"
             >
               Get Started Free

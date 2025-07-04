@@ -17,8 +17,6 @@ const Analysis = () => {
   const [statementCount, setStatementCount] = useState(1);
   const [files, setFiles] = useState<File[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisComplete, setAnalysisComplete] = useState(false);
-  const [results, setResults] = useState<any>(null);
 
   useEffect(() => {
     if (!user) {
@@ -47,18 +45,14 @@ const Analysis = () => {
     // Simulate analysis process
     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    const mockResults = {
-      totalTransactions: 156,
-      suspiciousAccounts: 23,
-      fraudulentAmount: 2300000,
-      riskLevel: 'High',
-      analysisDate: new Date().toISOString()
-    };
+    // Generate a mock analysis ID and navigate to results
+    const analysisId = 'analysis_' + Date.now();
     
-    setResults(mockResults);
     setIsAnalyzing(false);
-    setAnalysisComplete(true);
     toast.success('Analysis completed successfully!');
+    
+    // Navigate to the detailed results page
+    navigate(`/analysis/results/${analysisId}`);
   };
 
   const FileUploadField = ({ index }: { index: number }) => (
@@ -120,118 +114,60 @@ const Analysis = () => {
               </p>
             </div>
 
-            {!analysisComplete ? (
-              <div className="space-y-8">
-                {/* Statement Count */}
-                <div className="space-y-2">
-                  <Label htmlFor="count">Number of Bank Statements</Label>
-                  <Input
-                    id="count"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={statementCount}
-                    onChange={(e) => setStatementCount(parseInt(e.target.value) || 1)}
-                    className="h-12"
-                  />
+            <div className="space-y-8">
+              {/* Statement Count */}
+              <div className="space-y-2">
+                <Label htmlFor="count">Number of Bank Statements</Label>
+                <Input
+                  id="count"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={statementCount}
+                  onChange={(e) => setStatementCount(parseInt(e.target.value) || 1)}
+                  className="h-12"
+                />
+              </div>
+
+              {/* File Upload Fields */}
+              <div className="space-y-6">
+                {Array.from({ length: statementCount }, (_, index) => (
+                  <FileUploadField key={index} index={index} />
+                ))}
+              </div>
+
+              {/* Analyze Button */}
+              <Button
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || files.length === 0}
+                className="w-full bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white h-12"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analyzing Documents...
+                  </>
+                ) : (
+                  'Start Analysis'
+                )}
+              </Button>
+
+              {/* Supported Formats */}
+              <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-4 h-4" />
+                  <span>PDF</span>
                 </div>
-
-                {/* File Upload Fields */}
-                <div className="space-y-6">
-                  {Array.from({ length: statementCount }, (_, index) => (
-                    <FileUploadField key={index} index={index} />
-                  ))}
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-4 h-4" />
+                  <span>CSV</span>
                 </div>
-
-                {/* Analyze Button */}
-                <Button
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing || files.length === 0}
-                  className="w-full bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white h-12"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing Documents...
-                    </>
-                  ) : (
-                    'Start Analysis'
-                  )}
-                </Button>
-
-                {/* Supported Formats */}
-                <div className="flex items-center justify-center space-x-6 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="w-4 h-4" />
-                    <span>PDF</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <FileText className="w-4 h-4" />
-                    <span>CSV</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Image className="w-4 h-4" />
-                    <span>Images</span>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <Image className="w-4 h-4" />
+                  <span>Images</span>
                 </div>
               </div>
-            ) : (
-              /* Analysis Results */
-              <div className="space-y-8">
-                <div className="text-center">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold text-foreground mb-2">Analysis Complete</h2>
-                  <p className="text-muted-foreground">Your bank statements have been processed successfully</p>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-r from-pink-500/10 to-blue-500/10 rounded-xl p-6 border border-pink-500/20">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Total Transactions</h3>
-                    <p className="text-3xl font-bold text-pink-500">{results?.totalTransactions}</p>
-                  </div>
-                  
-                  <div className="bg-gradient-to-r from-blue-500/10 to-pink-500/10 rounded-xl p-6 border border-blue-500/20">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Suspicious Accounts</h3>
-                    <p className="text-3xl font-bold text-blue-500">{results?.suspiciousAccounts}</p>
-                  </div>
-                  
-                  <div className="bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-xl p-6 border border-red-500/20">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Fraudulent Amount</h3>
-                    <p className="text-3xl font-bold text-red-500">
-                      ${results?.fraudulentAmount?.toLocaleString()}
-                    </p>
-                  </div>
-                  
-                  <div className="bg-gradient-to-r from-yellow-500/10 to-red-500/10 rounded-xl p-6 border border-yellow-500/20">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <AlertCircle className="w-5 h-5 text-yellow-500" />
-                      <h3 className="text-lg font-semibold text-foreground">Risk Level</h3>
-                    </div>
-                    <p className="text-3xl font-bold text-yellow-500">{results?.riskLevel}</p>
-                  </div>
-                </div>
-
-                <div className="flex space-x-4">
-                  <Button
-                    onClick={() => {
-                      setAnalysisComplete(false);
-                      setResults(null);
-                      setFiles([]);
-                    }}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    New Analysis
-                  </Button>
-                  <Button
-                    onClick={() => navigate('/history')}
-                    className="flex-1 bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white"
-                  >
-                    View History
-                  </Button>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </main>
