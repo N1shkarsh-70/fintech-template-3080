@@ -369,7 +369,7 @@ const AnalysisResults = () => {
                             <Badge variant={getFlagColor(flag.type) as any}>
                               {flag.type}
                             </Badge>
-                            <Badge variant="outline" size="sm">
+                            <Badge variant="outline">
                               {flag.severity}
                             </Badge>
                           </div>
