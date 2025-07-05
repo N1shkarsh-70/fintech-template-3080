@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,11 +15,14 @@ import {
 const Navigation = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const handleProtectedRoute = (path: string) => {
@@ -67,9 +70,9 @@ const Navigation = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/avatars/01.png" alt={user.name} />
+                      <AvatarImage src="/avatars/01.png" alt={user.user_metadata?.full_name || user.email} />
                       <AvatarFallback className="bg-gradient-to-r from-pink-500 to-blue-500 text-white">
-                        {user.name.charAt(0).toUpperCase()}
+                        {(user.user_metadata?.full_name || user.email || 'U').charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
