@@ -12,6 +12,7 @@ import { Upload, FileText, Image, Loader2, CheckCircle, AlertCircle, X } from 'l
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useZipProcessing } from '@/hooks/useZipProcessing';
 
 const Analysis = () => {
   const { user } = useAuth();
@@ -19,7 +20,10 @@ const Analysis = () => {
   const [statementCount, setStatementCount] = useState(1);
   const [files, setFiles] = useState<File[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'upload' | 'zip' | 'process' | 'complete'>('upload');
+  
   const { uploadFiles, uploadProgress, isUploading, clearProgress } = useFileUpload();
+  const { createZip, isCreatingZip, zipUrl, error: zipError, clearState: clearZipState } = useZipProcessing();
 
   useEffect(() => {
     if (!user) {
@@ -108,6 +112,7 @@ const Analysis = () => {
 
     setIsAnalyzing(true);
     clearProgress();
+    clearZipState();
 
     try {
       const sessionId = generateSessionId();
@@ -115,11 +120,11 @@ const Analysis = () => {
 
       // Create analysis session in database
       await createAnalysisSession(sessionId, files.length);
+      setCurrentStep('upload');
       
-      // Upload files to Supabase Storage
+      // Step 1: Upload files to Supabase Storage
       toast.info('Uploading files...');
       const uploadedPaths = await uploadFiles(files, sessionId, user.id);
-      
       console.log('Files uploaded successfully:', uploadedPaths);
       
       // Update session status to processing
@@ -127,17 +132,38 @@ const Analysis = () => {
         status: 'processing' 
       });
 
-      toast.success('Files uploaded successfully! Processing...');
+      setCurrentStep('zip');
+      toast.info('Creating ZIP archive...');
       
-      // For now, simulate the ZIP creation process
-      // In the next step, we'll create the Edge Function to handle this
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Step 2: Create ZIP file
+      const zipDownloadUrl = await createZip(sessionId, user.id);
       
-      // Update session status to completed
+      if (!zipDownloadUrl) {
+        throw new Error('Failed to create ZIP file');
+      }
+
+      // Step 3: Update session with ZIP URL
+      const zipExpiresAt = new Date();
+      zipExpiresAt.setHours(zipExpiresAt.getHours() + 1); // 1 hour expiry
+      
+      await updateAnalysisSession(sessionId, {
+        zip_url: zipDownloadUrl,
+        zip_expires_at: zipExpiresAt.toISOString()
+      });
+
+      setCurrentStep('process');
+      toast.info('Processing analysis...');
+      
+      // Step 4: Simulate backend processing (placeholder)
+      // TODO: Send ZIP URL to external backend for analysis
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Step 5: Update session status to completed
       await updateAnalysisSession(sessionId, { 
         status: 'completed' 
       });
       
+      setCurrentStep('complete');
       toast.success('Analysis completed successfully!');
       
       // Navigate to results page
@@ -146,9 +172,20 @@ const Analysis = () => {
     } catch (error) {
       console.error('Analysis failed:', error);
       toast.error('Analysis failed. Please try again.');
+      setCurrentStep('upload');
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const getStepStatus = (step: string) => {
+    const steps = ['upload', 'zip', 'process', 'complete'];
+    const currentIndex = steps.indexOf(currentStep);
+    const stepIndex = steps.indexOf(step);
+    
+    if (stepIndex < currentIndex) return 'completed';
+    if (stepIndex === currentIndex) return 'active';
+    return 'pending';
   };
 
   const FileUploadField = ({ index }: { index: number }) => (
@@ -161,6 +198,7 @@ const Analysis = () => {
           accept=".pdf,.csv,.jpg,.jpeg,.png"
           onChange={(e) => handleFileChange(index, e.target.files?.[0] || null)}
           className="hidden"
+          disabled={isAnalyzing}
         />
         <label
           htmlFor={`file-${index}`}
@@ -187,6 +225,7 @@ const Analysis = () => {
                 removeFile(index);
               }}
               className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+              disabled={isAnalyzing}
             >
               <X className="w-4 h-4" />
             </Button>
@@ -221,6 +260,40 @@ const Analysis = () => {
               </p>
             </div>
 
+            {/* Progress Steps */}
+            {isAnalyzing && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  {[
+                    { key: 'upload', label: 'Upload Files', icon: Upload },
+                    { key: 'zip', label: 'Create Archive', icon: FileText },
+                    { key: 'process', label: 'Process Analysis', icon: Loader2 },
+                    { key: 'complete', label: 'Complete', icon: CheckCircle }
+                  ].map(({ key, label, icon: Icon }) => {
+                    const status = getStepStatus(key);
+                    return (
+                      <div key={key} className="flex flex-col items-center space-y-2">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          status === 'completed' ? 'bg-green-500 text-white' :
+                          status === 'active' ? 'bg-blue-500 text-white' :
+                          'bg-gray-200 text-gray-500'
+                        }`}>
+                          <Icon className={`w-5 h-5 ${status === 'active' ? 'animate-spin' : ''}`} />
+                        </div>
+                        <span className={`text-xs ${
+                          status === 'completed' ? 'text-green-600' :
+                          status === 'active' ? 'text-blue-600' :
+                          'text-gray-500'
+                        }`}>
+                          {label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-8">
               {/* Statement Count */}
               <div className="space-y-2">
@@ -233,7 +306,7 @@ const Analysis = () => {
                   value={statementCount}
                   onChange={(e) => setStatementCount(parseInt(e.target.value) || 1)}
                   className="h-12"
-                  disabled={isUploading || isAnalyzing}
+                  disabled={isAnalyzing}
                 />
               </div>
 
@@ -260,16 +333,34 @@ const Analysis = () => {
                 </div>
               )}
 
+              {/* ZIP Creation Status */}
+              {isCreatingZip && (
+                <div className="flex items-center space-x-2 text-sm text-blue-600">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Creating ZIP archive...</span>
+                </div>
+              )}
+
+              {zipError && (
+                <div className="flex items-center space-x-2 text-sm text-red-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>ZIP creation failed: {zipError}</span>
+                </div>
+              )}
+
               {/* Analyze Button */}
               <Button
                 onClick={handleAnalyze}
                 disabled={isAnalyzing || isUploading || files.length === 0}
                 className="w-full bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white h-12"
               >
-                {isAnalyzing || isUploading ? (
+                {isAnalyzing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isUploading ? 'Uploading Files...' : 'Processing Analysis...'}
+                    {currentStep === 'upload' && 'Uploading Files...'}
+                    {currentStep === 'zip' && 'Creating Archive...'}
+                    {currentStep === 'process' && 'Processing Analysis...'}
+                    {currentStep === 'complete' && 'Completing...'}
                   </>
                 ) : (
                   'Start Analysis'
