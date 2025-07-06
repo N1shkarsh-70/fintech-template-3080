@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import Navigation from '@/components/Navigation';
 import BackButton from '@/components/BackButton';
 import AppFooter from '@/components/AppFooter';
+import SessionRecovery from '@/components/SessionRecovery';
 import { Upload, FileText, Image, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -144,7 +144,7 @@ const Analysis = () => {
 
       // Step 3: Update session with ZIP URL
       const zipExpiresAt = new Date();
-      zipExpiresAt.setHours(zipExpiresAt.getHours() + 1); // 1 hour expiry
+      zipExpiresAt.setHours(zipExpiresAt.getHours() + 24); // 24 hour expiry
       
       await updateAnalysisSession(sessionId, {
         zip_url: zipDownloadUrl,
@@ -259,6 +259,9 @@ const Analysis = () => {
                 Upload bank statements to trace fraudulent money movement
               </p>
             </div>
+
+            {/* Session Recovery Tools */}
+            <SessionRecovery />
 
             {/* Progress Steps */}
             {isAnalyzing && (

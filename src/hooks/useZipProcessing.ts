@@ -24,9 +24,9 @@ export const useZipProcessing = () => {
       
       const { data, error } = await supabase.functions.invoke('create-zip-archive', {
         body: {
-          bucketName: 'user-uploads',
-          folderPath: `${userId}/${sessionId}`,
-          zipFileName: `${sessionId}.zip`
+          bucketName: 'user-uploads', // Source bucket for files
+          folderPath: `${userId}/${sessionId}`, // Folder structure
+          zipFileName: `${sessionId}.zip` // ZIP file name
         }
       });
 
@@ -36,6 +36,7 @@ export const useZipProcessing = () => {
       }
 
       if (!data || !data.downloadUrl) {
+        console.error('No download URL received:', data);
         throw new Error('No download URL received from ZIP creation');
       }
 
