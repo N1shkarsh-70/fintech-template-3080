@@ -7,20 +7,28 @@ import BackButton from '@/components/BackButton';
 import AppFooter from '@/components/AppFooter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { AlertCircle, CheckCircle, Download, FileText, TrendingUp, Users, DollarSign, Shield } from 'lucide-react';
-import { AnalysisResult } from '@/types/analysis';
+import { DownloadButton } from '@/components/ui/download-button';
+import { PersonsOfInterestTable } from '@/components/PersonsOfInterestTable';
+import { AlertCircle, CheckCircle, Loader2, FileText, Users } from 'lucide-react';
+import { useAnalysisPolling } from '@/hooks/useAnalysisPolling';
+import { useZipFileExtraction } from '@/hooks/useZipFileExtraction';
 import { toast } from 'sonner';
 
 const AnalysisResults = () => {
-  const { analysisId } = useParams();
+  const { sessionId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const { session, isPolling, error: pollingError, startPolling } = useAnalysisPolling();
+  const { 
+    extractedFiles, 
+    isExtracting, 
+    error: extractionError, 
+    extractFilesFromZip, 
+    downloadFile,
+    clearFiles 
+  } = useZipFileExtraction();
 
   useEffect(() => {
     if (!user) {
@@ -28,108 +36,81 @@ const AnalysisResults = () => {
       return;
     }
 
-    // Mock data - in real app, fetch from API using analysisId
-    const mockAnalysisData: AnalysisResult = {
-      id: analysisId || '1',
-      userId: user.id,
-      uploadDate: new Date().toISOString(),
-      status: 'completed',
-      summary: {
-        totalFiles: 3,
-        totalTransactions: 247,
-        suspiciousAccounts: 23,
-        fraudulentAmount: 2300000,
-        overallConfidence: 0.87,
-        riskLevel: 'High'
-      },
-      files: [
-        {
-          fileName: 'bank_statement_1.pdf',
-          fileId: 'file1',
-          transactionCount: 89,
-          suspiciousTransactions: 12,
-          totalAmount: 890000,
-          flaggedAmount: 340000,
-          confidence: 0.92,
-          graph: { type: 'flow', data: [] },
-          flags: [
-            { id: '1', type: 'suspicious', message: 'Large cash withdrawals detected', severity: 'high' },
-            { id: '2', type: 'warning', message: 'Unusual transaction pattern', severity: 'medium' }
-          ]
-        },
-        {
-          fileName: 'bank_statement_2.csv',
-          fileId: 'file2',
-          transactionCount: 78,
-          suspiciousTransactions: 6,
-          totalAmount: 450000,
-          flaggedAmount: 120000,
-          confidence: 0.85,
-          graph: { type: 'timeline', data: [] },
-          flags: [
-            { id: '3', type: 'warning', message: 'Multiple small transactions to same account', severity: 'medium' }
-          ]
-        },
-        {
-          fileName: 'bank_statement_3.pdf',
-          fileId: 'file3',
-          transactionCount: 80,
-          suspiciousTransactions: 5,
-          totalAmount: 960000,
-          flaggedAmount: 1840000,
-          confidence: 0.78,
-          graph: { type: 'network', data: [] },
-          flags: [
-            { id: '4', type: 'suspicious', message: 'Transactions to known high-risk accounts', severity: 'high' }
-          ]
-        }
-      ],
-      rawTransactions: [],
-      globalFlags: [
-        { id: '5', type: 'error', message: 'Some transactions could not be processed', severity: 'low' },
-        { id: '6', type: 'suspicious', message: 'Potential money laundering pattern detected', severity: 'high' }
-      ],
-      summaryFile: {
-        url: '/mock-summary.xlsx',
-        fileName: 'Analysis_Summary.xlsx'
+    if (!sessionId) {
+      navigate('/analysis');
+      return;
+    }
+
+    // Start polling for session status
+    startPolling(sessionId);
+    setIsInitialLoad(false);
+  }, [user, sessionId, navigate, startPolling]);
+
+  useEffect(() => {
+    // When session is completed and has a ZIP URL, extract files
+    if (session?.status === 'completed' && session.zip_url && extractedFiles.length === 0) {
+      // Check if this is a backend-generated ZIP (Google Cloud Storage) or our own ZIP
+      const isBackendZip = session.zip_url.includes('storage.googleapis.com');
+      
+      if (isBackendZip) {
+        toast.success('Analysis completed! Extracting results...');
+        extractFilesFromZip(session.zip_url);
+      } else {
+        // Handle our own ZIP creation (fallback)
+        toast.info('Analysis completed. ZIP file ready for download.');
       }
-    };
+    }
+  }, [session, extractFilesFromZip, extractedFiles.length]);
 
-    setTimeout(() => {
-      setAnalysisData(mockAnalysisData);
-      setIsLoading(false);
-    }, 1000);
-  }, [analysisId, user, navigate]);
+  const getUploadedFiles = () => {
+    return extractedFiles.filter(file => 
+      file.type === 'summary' || file.type === 'raw_transactions'
+    );
+  };
 
-  const handleDownloadSummary = () => {
-    if (analysisData?.summaryFile) {
-      toast.success('Summary file downloaded successfully');
-      // In real app: window.open(analysisData.summaryFile.url, '_blank');
+  const getGroupedFiles = () => {
+    const uploadedFiles = getUploadedFiles();
+    const grouped: { [key: string]: { summary?: any; raw?: any } } = {};
+    
+    uploadedFiles.forEach(file => {
+      const key = file.originalFileName || 'unknown';
+      if (!grouped[key]) grouped[key] = {};
+      
+      if (file.type === 'summary') {
+        grouped[key].summary = file;
+      } else if (file.type === 'raw_transactions') {
+        grouped[key].raw = file;
+      }
+    });
+    
+    return grouped;
+  };
+
+  const handleDownloadPOI = (beneficiaryName: string) => {
+    const poiFile = extractedFiles.find(file => 
+      file.type === 'poi' && 
+      file.beneficiaryName?.toLowerCase() === beneficiaryName.toLowerCase()
+    );
+    
+    if (poiFile) {
+      downloadFile(poiFile);
+      toast.success(`Downloaded POI data for ${beneficiaryName}`);
+    } else {
+      toast.error(`POI data not found for ${beneficiaryName}`);
     }
   };
 
-  const getRiskColor = (level: string) => {
-    switch (level) {
-      case 'Low': return 'text-green-500';
-      case 'Medium': return 'text-yellow-500';
-      case 'High': return 'text-orange-500';
-      case 'Critical': return 'text-red-500';
-      default: return 'text-gray-500';
-    }
-  };
-
-  const getFlagColor = (type: string) => {
-    switch (type) {
-      case 'error': return 'destructive';
-      case 'warning': return 'secondary';
-      case 'suspicious': return 'default';
-      default: return 'outline';
+  const handleDownloadZip = () => {
+    if (session?.zip_url) {
+      window.open(session.zip_url, '_blank');
+      toast.success('ZIP file download started');
     }
   };
 
   if (!user) return null;
 
-  if (isLoading) {
+  // Show loading while initial session fetch
+  if (isInitialLoad) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20">
         <Navigation />
@@ -138,7 +119,7 @@ const AnalysisResults = () => {
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Loading analysis results...</p>
+                <p className="text-muted-foreground">Loading analysis session...</p>
               </div>
             </div>
           </div>
@@ -147,7 +128,8 @@ const AnalysisResults = () => {
     );
   }
 
-  if (!analysisData) {
+  // Show error if session not found
+  if (!session && !isPolling) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20">
         <Navigation />
@@ -156,14 +138,26 @@ const AnalysisResults = () => {
             <BackButton />
             <div className="text-center">
               <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Analysis Not Found</h1>
-              <p className="text-muted-foreground">The requested analysis could not be found.</p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">Analysis Session Not Found</h1>
+              <p className="text-muted-foreground">
+                The requested analysis session could not be found or may have expired.
+              </p>
+              <Button 
+                onClick={() => navigate('/analysis')} 
+                className="mt-4"
+              >
+                Start New Analysis
+              </Button>
             </div>
           </div>
         </main>
       </div>
     );
   }
+
+  const poiFile = extractedFiles.find(file => file.type === 'persons_of_interest');
+  const poiFiles = extractedFiles.filter(file => file.type === 'poi');
+  const groupedFiles = getGroupedFiles();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20">
@@ -184,17 +178,18 @@ const AnalysisResults = () => {
                   </span>
                 </h1>
                 <p className="text-muted-foreground">
-                  Analysis completed on {new Date(analysisData.uploadDate).toLocaleDateString()}
+                  Session ID: {sessionId} • {session && new Date(session.created_at).toLocaleDateString()}
                 </p>
               </div>
               <div className="flex gap-3">
-                <Button
-                  onClick={handleDownloadSummary}
-                  className="bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Summary
-                </Button>
+                {session?.zip_url && (
+                  <DownloadButton
+                    onDownload={handleDownloadZip}
+                    variant="secondary"
+                  >
+                    Original ZIP
+                  </DownloadButton>
+                )}
                 <Button
                   variant="outline"
                   onClick={() => navigate('/analysis')}
@@ -205,186 +200,159 @@ const AnalysisResults = () => {
             </div>
           </div>
 
-          {/* Summary Cards */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{analysisData.summary.totalTransactions}</div>
-                <p className="text-xs text-muted-foreground">
-                  Across {analysisData.summary.totalFiles} files
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Suspicious Accounts</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-500">{analysisData.summary.suspiciousAccounts}</div>
-                <p className="text-xs text-muted-foreground">
-                  Flagged for review
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Fraudulent Amount</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-500">
-                  ${analysisData.summary.fraudulentAmount.toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Potentially fraudulent
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Risk Level</CardTitle>
-                <Shield className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${getRiskColor(analysisData.summary.riskLevel)}`}>
-                  {analysisData.summary.riskLevel}
-                </div>
-                <div className="flex items-center space-x-2 mt-2">
-                  <Progress value={analysisData.summary.overallConfidence * 100} className="flex-1" />
-                  <span className="text-xs text-muted-foreground">
-                    {Math.round(analysisData.summary.overallConfidence * 100)}%
-                  </span>
+          {/* Status Display */}
+          {session && (
+            <Card className="mb-8">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4">
+                  {session.status === 'processing' && (
+                    <>
+                      <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                      <div>
+                        <p className="font-medium text-foreground">Analysis in Progress</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your files are being processed. This may take a few minutes...
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  {session.status === 'completed' && extractedFiles.length > 0 && (
+                    <>
+                      <CheckCircle className="h-6 w-6 text-green-500" />
+                      <div>
+                        <p className="font-medium text-foreground">Analysis Complete</p>
+                        <p className="text-sm text-muted-foreground">
+                          {extractedFiles.length} files extracted and ready for download
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  {session.status === 'completed' && extractedFiles.length === 0 && isExtracting && (
+                    <>
+                      <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                      <div>
+                        <p className="font-medium text-foreground">Extracting Results</p>
+                        <p className="text-sm text-muted-foreground">
+                          Processing analysis results from backend...
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  {session.status === 'failed' && (
+                    <>
+                      <AlertCircle className="h-6 w-6 text-red-500" />
+                      <div>
+                        <p className="font-medium text-foreground">Analysis Failed</p>
+                        <p className="text-sm text-muted-foreground">
+                          There was an error processing your files. Please try again.
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
-          </div>
+          )}
 
-          {/* Detailed Analysis */}
-          <Tabs defaultValue="files" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="files">File Analysis</TabsTrigger>
-              <TabsTrigger value="transactions">Raw Transactions</TabsTrigger>
-              <TabsTrigger value="flags">Flags & Issues</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="files" className="space-y-6">
-              {analysisData.files.map((file, index) => (
-                <Card key={file.fileId}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>{file.fileName}</span>
-                      <Badge variant="outline">
-                        Confidence: {Math.round(file.confidence * 100)}%
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription>
-                      {file.transactionCount} transactions • {file.suspiciousTransactions} flagged
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Total Amount</div>
-                        <div className="text-lg font-bold">${file.totalAmount.toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Flagged Amount</div>
-                        <div className="text-lg font-bold text-red-500">${file.flaggedAmount.toLocaleString()}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Graph Type</div>
-                        <div className="text-lg font-bold capitalize">{file.graph.type}</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-muted-foreground">Issues</div>
-                        <div className="text-lg font-bold">{file.flags.length}</div>
-                      </div>
-                    </div>
-                    
-                    {file.flags.length > 0 && (
-                      <div className="mt-4">
-                        <h4 className="text-sm font-medium mb-2">File-specific Issues:</h4>
-                        <div className="space-y-2">
-                          {file.flags.map((flag) => (
-                            <div key={flag.id} className="flex items-center space-x-2">
-                              <Badge variant={getFlagColor(flag.type) as any}>
-                                {flag.type}
-                              </Badge>
-                              <span className="text-sm">{flag.message}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="transactions">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Raw Transaction Data</CardTitle>
-                  <CardDescription>
-                    Complete transaction records from all uploaded files
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Transaction data would be displayed here in a searchable table format.</p>
-                    <p className="text-sm mt-2">This feature requires backend integration to process the raw transaction data.</p>
+          {/* Error Display */}
+          {(pollingError || extractionError) && (
+            <Card className="mb-8 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                  <div>
+                    <p className="font-medium text-red-700 dark:text-red-400">Error</p>
+                    <p className="text-sm text-red-600 dark:text-red-300">
+                      {pollingError || extractionError}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            <TabsContent value="flags">
-              <Card>
+          {/* File Downloads Section */}
+          {extractedFiles.length > 0 && (
+            <>
+              <Card className="mb-8">
                 <CardHeader>
-                  <CardTitle>Global Flags & Issues</CardTitle>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5" />
+                    <span>Uploaded Files Analysis</span>
+                  </CardTitle>
                   <CardDescription>
-                    System-wide issues and suspicious patterns detected across all files
+                    Download summary and raw transaction data for each uploaded file
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {analysisData.globalFlags.map((flag) => (
-                      <div key={flag.id} className="flex items-start space-x-3 p-4 border rounded-lg">
-                        <div className="mt-1">
-                          {flag.type === 'error' && <AlertCircle className="w-5 h-5 text-red-500" />}
-                          {flag.type === 'warning' && <AlertCircle className="w-5 h-5 text-yellow-500" />}
-                          {flag.type === 'suspicious' && <Shield className="w-5 h-5 text-orange-500" />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <Badge variant={getFlagColor(flag.type) as any}>
-                              {flag.type}
-                            </Badge>
-                            <Badge variant="outline">
-                              {flag.severity}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-foreground">{flag.message}</p>
-                          {flag.details && (
-                            <p className="text-xs text-muted-foreground mt-1">{flag.details}</p>
+                <CardContent className="space-y-6">
+                  {Object.keys(groupedFiles).length > 0 ? (
+                    Object.entries(groupedFiles).map(([fileName, files]) => (
+                      <div key={fileName} className="border rounded-lg p-6 bg-muted/30">
+                        <h3 className="text-lg font-semibold mb-4 text-foreground">
+                          {fileName}
+                        </h3>
+                        <div className="flex flex-wrap gap-4">
+                          {files.summary && (
+                            <DownloadButton
+                              onDownload={() => downloadFile(files.summary)}
+                              variant="primary"
+                            >
+                              Download Summary
+                            </DownloadButton>
+                          )}
+                          {files.raw && (
+                            <DownloadButton
+                              onDownload={() => downloadFile(files.raw)}
+                              variant="subtle"
+                            >
+                              Download Raw
+                            </DownloadButton>
                           )}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No file analysis data available</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
+
+              {/* Persons of Interest Table */}
+              <PersonsOfInterestTable
+                poiFile={poiFile}
+                poiFiles={poiFiles}
+                onDownloadFile={downloadFile}
+                onDownloadPOI={handleDownloadPOI}
+              />
+            </>
+          )}
+
+          {/* No Results Yet */}
+          {session?.status !== 'failed' && extractedFiles.length === 0 && !isExtracting && (
+            <Card>
+              <CardContent className="p-12">
+                <div className="text-center">
+                  <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <h3 className="text-xl font-semibold mb-2">Analysis Results Pending</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {session?.status === 'processing' 
+                      ? 'Your analysis is currently being processed. Results will appear here once complete.'
+                      : 'Waiting for analysis results...'
+                    }
+                  </p>
+                  {isPolling && (
+                    <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-pink-500"></div>
+                      <span>Checking for updates...</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       
