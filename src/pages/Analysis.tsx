@@ -155,9 +155,8 @@ const Analysis = () => {
       toast.info('Processing analysis...');
       
       // Step 4: Send ZIP URL to backend for processing
-      // TODO: Replace with actual backend endpoint
       try {
-        const backendResponse = await fetch('/api/process-analysis', {
+        const backendResponse = await fetch('http://127.0.0.1:8001/parse-statements/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -170,14 +169,33 @@ const Analysis = () => {
         });
         
         if (!backendResponse.ok) {
-          throw new Error('Backend processing failed');
+          throw new Error(`Backend processing failed: ${backendResponse.status}`);
         }
         
-        console.log('Analysis sent to backend successfully');
+        const result = await backendResponse.json();
+        console.log('Backend response:', result);
+        
+        // Update session with backend response
+        if (result.status === 'success' && result.url) {
+          await updateAnalysisSession(sessionId, {
+            status: 'completed',
+            zip_url: result.url
+          });
+          console.log('Session updated with backend results');
+        } else {
+          throw new Error('Backend processing failed - invalid response');
+        }
+        
       } catch (backendError) {
-        console.warn('Backend not available, using mock processing:', backendError);
-        // Simulate processing time
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        console.error('Backend processing failed:', backendError);
+        
+        // Update session status to failed
+        await updateAnalysisSession(sessionId, {
+          status: 'failed'
+        });
+        
+        toast.error('Analysis processing failed. Please try again.');
+        throw backendError;
       }
       
       setCurrentStep('complete');
