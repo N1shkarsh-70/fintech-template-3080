@@ -1,71 +1,60 @@
-
 import React from 'react';
-import { Brain, Shield, Zap, FileText, Users, TrendingUp } from 'lucide-react';
+import { Target, FileCheck, Users, Download } from 'lucide-react';
 
 const LandingFeatures = () => {
   const features = [
     {
-      icon: Brain,
-      title: 'AI-Powered Analysis',
-      description: 'Advanced machine learning algorithms analyze patterns and detect suspicious activities automatically.'
+      icon: Target,
+      title: 'Forensic-grade parsing accuracy',
+      description: 'Advanced AI algorithms ensure 99.9% accuracy in transaction extraction, meeting forensic investigation standards.'
     },
     {
-      icon: Shield,
-      title: 'Secure Processing',
-      description: 'Bank-grade security ensures all financial data is processed with the highest level of protection.'
-    },
-    {
-      icon: Zap,
-      title: 'Real-time Tracing',
-      description: 'Instantly trace money movement across multiple accounts and financial institutions.'
-    },
-    {
-      icon: FileText,
-      title: 'Document Analysis',
-      description: 'Upload bank statements in any format - PDF, CSV, or images - for comprehensive analysis.'
+      icon: FileCheck,
+      title: 'Scanned + Digital statements supported',
+      description: 'Process any format - from high-quality PDFs to poor-quality scanned images from any Indian bank.'
     },
     {
       icon: Users,
-      title: 'Multi-Agency Support',
-      description: 'Collaborate with other government agencies and share findings securely.'
+      title: 'Smart detection of related-party links',
+      description: 'Automatically identify connections between accounts, flag circular transactions, and detect unusual patterns.'
     },
     {
-      icon: TrendingUp,
-      title: 'Detailed Reports',
-      description: 'Generate comprehensive reports with visual money flow graphs and evidence trails.'
+      icon: Download,
+      title: 'Court-Ready, Audit-Optimized Outputs',
+      description: 'Generate professionally formatted Excel reports and detailed analysis ready for legal proceedings.'
     }
   ];
 
   return (
     <section id="features" className="py-20 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-pink-50/30 to-transparent dark:via-pink-950/10"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background"></div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold text-foreground mb-6">
             Powerful Features for
-            <span className="bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
-              {" "}Financial Investigation
+            <span className="text-primary">
+              {" "}Financial Analysis
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Our platform combines cutting-edge AI with government-grade security to help you trace and analyze fraudulent financial activities with unprecedented accuracy.
+            Professional-grade tools designed specifically for auditors, investigators, and financial analysts who need accurate, reliable results.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 gap-8">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-background/60 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-pink-500/30 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/10 group"
+              className="bg-card/60 backdrop-blur-sm rounded-xl p-8 border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 group"
             >
-              <div className="mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <feature.icon className="w-6 h-6 text-white" />
+              <div className="mb-6">
+                <div className="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-primary/20">
+                  <feature.icon className="w-7 h-7 text-primary" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
+              <h3 className="text-xl font-semibold text-foreground mb-4">{feature.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>

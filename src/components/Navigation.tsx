@@ -39,11 +39,11 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">FT</span>
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">BS</span>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
-              FinTrace
+            <span className="text-xl font-bold text-primary">
+              BankStatementParser
             </span>
           </Link>
 
@@ -51,13 +51,13 @@ const Navigation = () => {
           <div className="hidden md:flex space-x-8">
             <button
               onClick={() => handleProtectedRoute('/analysis')}
-              className="text-foreground hover:text-pink-500 transition-colors"
+              className="text-foreground hover:text-primary transition-colors"
             >
               Analysis
             </button>
             <button
               onClick={() => handleProtectedRoute('/history')}
-              className="text-foreground hover:text-pink-500 transition-colors"
+              className="text-foreground hover:text-primary transition-colors"
             >
               History
             </button>
@@ -71,7 +71,7 @@ const Navigation = () => {
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src="/avatars/01.png" alt={user.user_metadata?.full_name || user.email} />
-                      <AvatarFallback className="bg-gradient-to-r from-pink-500 to-blue-500 text-white">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
                         {(user.user_metadata?.full_name || user.email || 'U').charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -93,13 +93,13 @@ const Navigation = () => {
                 <Button
                   variant="ghost"
                   onClick={() => navigate('/login')}
-                  className="text-foreground hover:text-pink-500"
+                  className="text-foreground hover:text-primary"
                 >
                   Login
                 </Button>
                 <Button
                   onClick={() => navigate('/signup')}
-                  className="bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Sign Up
                 </Button>
