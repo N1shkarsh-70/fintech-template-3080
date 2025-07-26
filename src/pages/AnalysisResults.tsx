@@ -112,13 +112,13 @@ const AnalysisResults = () => {
   // Show loading while initial session fetch
   if (isInitialLoad) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20">
+      <div className="min-h-screen bg-gradient-to-br from-fintech-navy via-fintech-navy to-fintech-navy">
         <Navigation />
         <main className="pt-20 pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
                 <p className="text-muted-foreground">Loading analysis session...</p>
               </div>
             </div>
@@ -131,7 +131,7 @@ const AnalysisResults = () => {
   // Show error if session not found
   if (!session && !isPolling) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20">
+      <div className="min-h-screen bg-gradient-to-br from-fintech-navy via-fintech-navy to-fintech-navy">
         <Navigation />
         <main className="pt-20 pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -160,7 +160,7 @@ const AnalysisResults = () => {
   const groupedFiles = getGroupedFiles();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20">
+    <div className="min-h-screen bg-gradient-to-br from-fintech-navy via-fintech-navy to-fintech-navy">
       <Navigation />
       
       <main className="pt-20 pb-20">
@@ -173,7 +173,7 @@ const AnalysisResults = () => {
               <div>
                 <h1 className="text-4xl font-bold text-foreground mb-2">
                   Analysis
-                  <span className="bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
+                  <span className="text-primary">
                     {" "}Results
                   </span>
                 </h1>
@@ -345,7 +345,7 @@ const AnalysisResults = () => {
                   </p>
                   {isPolling && (
                     <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-pink-500"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                       <span>Checking for updates...</span>
                     </div>
                   )}

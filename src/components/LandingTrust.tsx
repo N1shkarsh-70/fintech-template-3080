@@ -7,10 +7,10 @@ const LandingTrust = () => {
     label: 'Lines Parsed',
     description: 'with 99.9% accuracy'
   }, {
-    icon: Users,
-    value: '150+',
-    label: 'CA Firms',
-    description: 'trust our platform'
+    icon: Shield,
+    value: '24/7',
+    label: 'Security',
+    description: 'real-time monitoring'
   }, {
     icon: Shield,
     value: '100%',
@@ -18,9 +18,9 @@ const LandingTrust = () => {
     description: 'audit-ready outputs'
   }, {
     icon: Lock,
-    value: '24/7',
-    label: 'Security',
-    description: 'end-to-end encryption'
+    value: 'Zero',
+    label: 'Data Retention',
+    description: 'files auto-deleted'
   }];
   const clientLogos = ['KPMG', 'EY', 'Deloitte', 'PwC', 'Grant Thornton', 'BDO'];
   return <section className="py-20 relative bg-secondary/10">

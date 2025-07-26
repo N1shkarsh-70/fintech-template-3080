@@ -99,7 +99,7 @@ const History = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20">
+    <div className="min-h-screen bg-gradient-to-br from-fintech-navy via-fintech-navy to-fintech-navy">
       <Navigation />
       
       <main className="pt-20 pb-20">
@@ -109,7 +109,7 @@ const History = () => {
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-4">
               Analysis
-              <span className="bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
+              <span className="text-primary">
                 {" "}History
               </span>
             </h1>
@@ -119,7 +119,7 @@ const History = () => {
           </div>
 
           {historyData.length === 0 ? (
-            <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-12 border border-white/20 shadow-2xl text-center">
+            <div className="cosmic-card rounded-2xl p-12 shadow-2xl text-center">
               <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-foreground mb-2">No Analysis History</h2>
               <p className="text-muted-foreground mb-6">
@@ -127,7 +127,7 @@ const History = () => {
               </p>
               <Button
                 onClick={() => navigate('/analysis')}
-                className="bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 Start Analysis
               </Button>
@@ -137,12 +137,12 @@ const History = () => {
               {historyData.map((analysis) => (
                 <div
                   key={analysis.id}
-                  className="bg-background/80 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="cosmic-card rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                     <div className="space-y-2">
                       <div className="flex items-center space-x-3">
-                        <Calendar className="w-5 h-5 text-pink-500" />
+                        <Calendar className="w-5 h-5 text-primary" />
                         <span className="text-lg font-semibold text-foreground">
                           {formatDate(analysis.date)}
                         </span>
@@ -172,7 +172,7 @@ const History = () => {
                       
                       <div className="text-center">
                         <div className="text-2xl font-bold text-red-500">
-                          ${(analysis.fraudulentAmount / 1000000).toFixed(1)}M
+                          ₹{(analysis.fraudulentAmount / 1000000).toFixed(1)}M
                         </div>
                         <div className="text-xs text-muted-foreground">Fraudulent Amount</div>
                       </div>
@@ -180,7 +180,7 @@ const History = () => {
                       <div className="col-span-2 lg:col-span-1 flex justify-center lg:justify-end">
                         <Button
                           variant="outline"
-                          className="border-pink-500/30 hover:bg-pink-500/10 hover:border-pink-500/50"
+                          className="border-primary/30 hover:bg-primary/10 hover:border-primary/50"
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           View Report
@@ -194,7 +194,7 @@ const History = () => {
               <div className="text-center pt-8">
                 <Button
                   onClick={() => navigate('/analysis')}
-                  className="bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Run New Analysis
                 </Button>

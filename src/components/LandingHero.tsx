@@ -89,6 +89,7 @@ const LandingHero = () => {
                 variant="outline"
                 size="lg"
                 className="border-2 border-primary/30 hover:bg-primary/10 text-foreground text-lg px-8 py-6 h-auto group"
+                onClick={() => navigate('/request-demo')}
               >
                 <Play className="mr-2 h-5 w-5" />
                 Request a Demo

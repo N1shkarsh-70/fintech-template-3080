@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import Analysis from "./pages/Analysis";
 import AnalysisResults from "./pages/AnalysisResults";
 import History from "./pages/History";
+import RequestDemo from "./pages/RequestDemo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/analysis" element={<Analysis />} />
             <Route path="/analysis/results/:sessionId" element={<AnalysisResults />} />
             <Route path="/history" element={<History />} />
+            <Route path="/request-demo" element={<RequestDemo />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

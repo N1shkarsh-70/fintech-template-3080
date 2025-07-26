@@ -226,7 +226,7 @@ const Analysis = () => {
   const FileUploadField = ({ index }: { index: number }) => (
     <div className="space-y-2">
       <Label htmlFor={`file-${index}`}>Bank Statement {index + 1}</Label>
-      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-pink-500/50 transition-colors relative">
+      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors relative">
         <input
           id={`file-${index}`}
           type="file"
@@ -241,7 +241,7 @@ const Analysis = () => {
         >
           <Upload className="w-8 h-8 text-muted-foreground" />
           <div className="text-sm">
-            <span className="font-medium text-pink-500">Click to upload</span>
+            <span className="font-medium text-primary">Click to upload</span>
             <span className="text-muted-foreground"> or drag and drop</span>
           </div>
           <div className="text-xs text-muted-foreground">
@@ -275,23 +275,23 @@ const Analysis = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20">
+    <div className="min-h-screen bg-gradient-to-br from-fintech-navy via-fintech-navy to-fintech-navy">
       <Navigation />
       
       <main className="pt-20 pb-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <BackButton />
           
-          <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-2xl">
+          <div className="cosmic-card rounded-2xl p-8 shadow-2xl">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-foreground mb-4">
-                Financial
-                <span className="bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
-                  {" "}Analysis
+                Bank Statement
+                <span className="text-primary">
+                  {" "}Parser
                 </span>
               </h1>
               <p className="text-muted-foreground text-lg">
-                Upload bank statements to trace fraudulent money movement
+                Upload bank statements for automated forensic analysis
               </p>
             </div>
 
@@ -390,7 +390,7 @@ const Analysis = () => {
               <Button
                 onClick={handleAnalyze}
                 disabled={isAnalyzing || isUploading || files.length === 0}
-                className="w-full bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white h-12"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12"
               >
                 {isAnalyzing ? (
                   <>
