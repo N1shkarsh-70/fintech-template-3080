@@ -156,7 +156,7 @@ const Analysis = () => {
       
       // Step 4: Send ZIP URL to backend for processing
       try {
-        const backendResponse = await fetch('https://e2da6b6c985d.ngrok-free.app/parse-statements/', {
+        const backendResponse = await fetch('https://303a26ba156e.ngrok-free.app/parse-statements/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
