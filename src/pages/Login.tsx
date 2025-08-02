@@ -37,24 +37,24 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-pink-950/20 dark:via-background dark:to-blue-950/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-fintech-navy flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="absolute top-6 left-6">
           <BackButton />
         </div>
         
-        <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-2xl">
+        <div className="cosmic-card rounded-2xl p-8 shadow-2xl border border-primary/20">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold">FT</span>
+              <div className="w-12 h-12 bg-gradient-to-r from-primary to-primary-light rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">BSP</span>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent">
-                FinTrace
+              <span className="text-2xl font-bold text-foreground">
+                BankStatementParser
               </span>
             </div>
             <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
-            <p className="text-muted-foreground mt-2">Sign in to continue your investigation</p>
+            <p className="text-muted-foreground mt-2">Sign in to access your forensic analysis tools</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -87,7 +87,7 @@ const Login = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-pink-500 to-blue-500 hover:from-pink-600 hover:to-blue-600 text-white h-12"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 font-semibold"
             >
               {isLoading ? (
                 <>
@@ -113,7 +113,7 @@ const Login = () => {
               variant="outline"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full h-12 border-2"
+              className="w-full h-12 border-2 border-primary/30 hover:border-primary/50 hover:bg-primary/10"
             >
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -143,7 +143,7 @@ const Login = () => {
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Don't have an account? </span>
-            <Link to="/signup" className="font-medium text-pink-500 hover:text-pink-600">
+            <Link to="/signup" className="font-medium text-primary hover:text-primary/80 transition-colors">
               Sign up
             </Link>
           </div>

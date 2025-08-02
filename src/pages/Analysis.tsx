@@ -35,29 +35,49 @@ const Analysis = () => {
     return `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
   };
 
+  const validateFile = (file: File) => {
+    const allowedTypes = [
+      'application/pdf',
+      'text/csv',
+      'image/jpeg',
+      'image/jpg', 
+      'image/png'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(`${file.name}: Please upload only PDF, CSV, JPG, or PNG files`);
+      return false;
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error(`${file.name}: File size must be less than 10MB`);
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleMultipleFileSelection = (selectedFiles: FileList | null) => {
+    if (!selectedFiles) return;
+    
+    const newFiles = Array.from(selectedFiles).filter(validateFile);
+    
+    if (newFiles.length > 0) {
+      // Update statement count if user selected more files than expected
+      if (newFiles.length > statementCount) {
+        setStatementCount(newFiles.length);
+      }
+      
+      setFiles(newFiles);
+      toast.success(`${newFiles.length} file(s) selected successfully`);
+    }
+  };
+
   const handleFileChange = (index: number, file: File | null) => {
     const newFiles = [...files];
     if (file) {
-      // Validate file type
-      const allowedTypes = [
-        'application/pdf',
-        'text/csv',
-        'image/jpeg',
-        'image/jpg', 
-        'image/png'
-      ];
-      
-      if (!allowedTypes.includes(file.type)) {
-        toast.error('Please upload only PDF, CSV, JPG, or PNG files');
-        return;
-      }
-
-      // Validate file size (10MB max)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('File size must be less than 10MB');
-        return;
-      }
-
+      if (!validateFile(file)) return;
       newFiles[index] = file;
     } else {
       newFiles.splice(index, 1);
@@ -223,6 +243,74 @@ const Analysis = () => {
     return 'pending';
   };
 
+  const BulkFileUploadField = () => (
+    <div className="space-y-4">
+      <div className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center hover:border-primary/50 transition-colors bg-primary/5">
+        <input
+          id="bulk-upload"
+          type="file"
+          accept=".pdf,.csv,.jpg,.jpeg,.png"
+          onChange={(e) => handleMultipleFileSelection(e.target.files)}
+          className="hidden"
+          disabled={isAnalyzing}
+          multiple
+        />
+        <label
+          htmlFor="bulk-upload"
+          className="cursor-pointer flex flex-col items-center space-y-4"
+        >
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+            <Upload className="w-8 h-8 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <div className="text-lg font-semibold text-foreground">
+              Upload Bank Statements
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <span className="font-medium text-primary">Click to select multiple files</span>
+              <span className="block">or drag and drop files here</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Supports PDF, CSV, JPG, PNG (up to 10MB each)
+            </div>
+          </div>
+        </label>
+      </div>
+      
+      {files.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="font-medium text-foreground">Selected Files ({files.length})</h3>
+          <div className="grid gap-2">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-card border border-border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <div>
+                    <div className="text-sm font-medium text-foreground truncate max-w-xs">
+                      {file.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(index)}
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-red-500"
+                  disabled={isAnalyzing}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   const FileUploadField = ({ index }: { index: number }) => (
     <div className="space-y-2">
       <Label htmlFor={`file-${index}`}>Bank Statement {index + 1}</Label>
@@ -333,27 +421,68 @@ const Analysis = () => {
             )}
 
             <div className="space-y-8">
-              {/* Statement Count */}
-              <div className="space-y-2">
-                <Label htmlFor="count">Number of Bank Statements</Label>
-                <Input
-                  id="count"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={statementCount}
-                  onChange={(e) => setStatementCount(parseInt(e.target.value) || 1)}
-                  className="h-12"
-                  disabled={isAnalyzing}
-                />
+              {/* File Upload Methods Toggle */}
+              <div className="flex items-center justify-center space-x-4 p-4 bg-card/50 rounded-lg border border-border">
+                <span className="text-sm text-muted-foreground">Upload Method:</span>
+                <div className="flex space-x-2">
+                  <Button
+                    variant={files.length === 0 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      setFiles([]);
+                      setStatementCount(1);
+                    }}
+                    disabled={isAnalyzing}
+                  >
+                    Bulk Upload
+                  </Button>
+                  <Button
+                    variant={files.length > 0 ? "outline" : "default"}
+                    size="sm"
+                    onClick={() => setFiles([])}
+                    disabled={isAnalyzing}
+                  >
+                    Individual Upload
+                  </Button>
+                </div>
               </div>
 
-              {/* File Upload Fields */}
-              <div className="space-y-6">
-                {Array.from({ length: statementCount }, (_, index) => (
-                  <FileUploadField key={index} index={index} />
-                ))}
-              </div>
+              {files.length === 0 ? (
+                /* Bulk Upload */
+                <BulkFileUploadField />
+              ) : (
+                /* Show selected files and option to add more */
+                <div className="space-y-6">
+                  <BulkFileUploadField />
+                  
+                  {/* Statement Count for Individual Upload */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="count">Individual Upload Mode</Label>
+                      <div className="flex items-center space-x-2">
+                        <Label htmlFor="count" className="text-sm">Count:</Label>
+                        <Input
+                          id="count"
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={statementCount}
+                          onChange={(e) => setStatementCount(parseInt(e.target.value) || 1)}
+                          className="h-8 w-20"
+                          disabled={isAnalyzing}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Individual File Upload Fields */}
+                    <div className="space-y-4">
+                      {Array.from({ length: Math.max(statementCount, files.length) }, (_, index) => (
+                        <FileUploadField key={index} index={index} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Upload Progress */}
               {uploadProgress.length > 0 && (
