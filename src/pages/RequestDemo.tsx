@@ -1,5 +1,5 @@
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,22 +8,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Navigation from '@/components/Navigation';
 import BackButton from '@/components/BackButton';
 import AppFooter from '@/components/AppFooter';
-import { Building, Mail, Phone, User, FileText, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Loader2, CheckCircle } from 'lucide-react';
 
 const RequestDemo = () => {
-  const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: '',
+    name: '',
     email: '',
+    company: '',
+    role: '',
     phone: '',
-    organization: '',
-    jobTitle: '',
-    organizationType: '',
-    caseVolume: '',
     message: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -34,233 +32,179 @@ const RequestDemo = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    // Basic validation
-    if (!formData.fullName || !formData.email || !formData.organization) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    setIsSubmitting(true);
-
+    // Mock API call - replace with actual implementation later
     try {
-      // Mock API call - replace with actual endpoint later
+      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      toast.success('Demo request submitted successfully! We\'ll contact you within 24 hours.');
-      
-      // Reset form
-      setFormData({
-        fullName: '',
-        email: '',
-        phone: '',
-        organization: '',
-        jobTitle: '',
-        organizationType: '',
-        caseVolume: '',
-        message: ''
-      });
-      
-      // Navigate back to home after 2 seconds
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-      
+      console.log('Demo request submitted:', formData);
+      toast.success('Demo request submitted successfully!');
+      setIsSubmitted(true);
     } catch (error) {
       toast.error('Failed to submit demo request. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-fintech-navy via-fintech-navy to-fintech-navy">
+        <Navigation />
+        
+        <main className="pt-20 pb-20">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-card/90 backdrop-blur-xl rounded-2xl p-8 border border-border shadow-2xl text-center">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
+              <h1 className="text-3xl font-bold text-foreground mb-4">Thank You!</h1>
+              <p className="text-muted-foreground text-lg mb-6">
+                Your demo request has been submitted successfully. Our team will contact you within 24 hours to schedule your personalized demo.
+              </p>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>What happens next:</p>
+                <ul className="list-disc list-inside space-y-1 max-w-md mx-auto">
+                  <li>Our team reviews your request</li>
+                  <li>We'll contact you to schedule a convenient time</li>
+                  <li>Personalized demo tailored to your needs</li>
+                  <li>Q&A session with our experts</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </main>
+        
+        <AppFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-fintech-navy via-fintech-navy to-fintech-navy">
       <Navigation />
       
       <main className="pt-20 pb-20">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <BackButton />
           
-          <div className="cosmic-card rounded-2xl p-8 shadow-2xl">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-foreground mb-4">
-                Request a
-                <span className="text-primary">
-                  {" "}Demo
-                </span>
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                See how our bank statement parser can transform your forensic analysis workflow
-              </p>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-foreground mb-4">
+              Request a
+              <span className="text-primary">
+                {" "}Demo
+              </span>
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              See Financial Compass in action. Get a personalized demo tailored to your specific needs and use cases.
+            </p>
+          </div>
 
+          <div className="bg-card/90 backdrop-blur-xl rounded-2xl p-8 border border-border shadow-2xl">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Personal Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="flex items-center space-x-2">
-                    <User className="w-4 h-4 text-primary" />
-                    <span>Full Name *</span>
-                  </Label>
+                  <Label htmlFor="name">Full Name *</Label>
                   <Input
-                    id="fullName"
+                    id="name"
                     type="text"
-                    value={formData.fullName}
-                    onChange={(e) => handleInputChange('fullName', e.target.value)}
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="Enter your full name"
                     required
                     className="h-12"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center space-x-2">
-                    <Mail className="w-4 h-4 text-primary" />
-                    <span>Email Address *</span>
-                  </Label>
+                  <Label htmlFor="email">Email Address *</Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="your.email@company.com"
+                    placeholder="Enter your email address"
                     required
                     className="h-12"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center space-x-2">
-                    <Phone className="w-4 h-4 text-primary" />
-                    <span>Phone Number</span>
-                  </Label>
+                  <Label htmlFor="company">Company/Organization *</Label>
                   <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="+91 98765 43210"
-                    className="h-12"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="jobTitle" className="flex items-center space-x-2">
-                    <Building className="w-4 h-4 text-primary" />
-                    <span>Job Title</span>
-                  </Label>
-                  <Input
-                    id="jobTitle"
+                    id="company"
                     type="text"
-                    value={formData.jobTitle}
-                    onChange={(e) => handleInputChange('jobTitle', e.target.value)}
-                    placeholder="e.g., Forensic Analyst, CA, Investigator"
+                    value={formData.company}
+                    onChange={(e) => handleInputChange('company', e.target.value)}
+                    placeholder="Enter your company name"
+                    required
                     className="h-12"
                   />
                 </div>
-              </div>
 
-              {/* Organization Information */}
-              <div className="space-y-2">
-                <Label htmlFor="organization" className="flex items-center space-x-2">
-                  <Building className="w-4 h-4 text-primary" />
-                  <span>Organization Name *</span>
-                </Label>
-                <Input
-                  id="organization"
-                  type="text"
-                  value={formData.organization}
-                  onChange={(e) => handleInputChange('organization', e.target.value)}
-                  placeholder="Your company or firm name"
-                  required
-                  className="h-12"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="organizationType">Organization Type</Label>
-                  <Select value={formData.organizationType} onValueChange={(value) => handleInputChange('organizationType', value)}>
+                  <Label htmlFor="role">Your Role *</Label>
+                  <Select onValueChange={(value) => handleInputChange('role', value)} required>
                     <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Select organization type" />
+                      <SelectValue placeholder="Select your role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ca-firm">CA Firm</SelectItem>
-                      <SelectItem value="law-enforcement">Law Enforcement</SelectItem>
-                      <SelectItem value="corporate">Corporate</SelectItem>
-                      <SelectItem value="consulting">Consulting Firm</SelectItem>
-                      <SelectItem value="government">Government Agency</SelectItem>
-                      <SelectItem value="bank">Bank/Financial Institution</SelectItem>
+                      <SelectItem value="forensic-analyst">Forensic Analyst</SelectItem>
+                      <SelectItem value="chartered-accountant">Chartered Accountant</SelectItem>
+                      <SelectItem value="financial-investigator">Financial Investigator</SelectItem>
+                      <SelectItem value="auditor">Auditor</SelectItem>
+                      <SelectItem value="compliance-officer">Compliance Officer</SelectItem>
+                      <SelectItem value="legal-professional">Legal Professional</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="caseVolume">Monthly Case Volume</Label>
-                  <Select value={formData.caseVolume} onValueChange={(value) => handleInputChange('caseVolume', value)}>
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Select volume" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1-5">1-5 cases</SelectItem>
-                      <SelectItem value="6-20">6-20 cases</SelectItem>
-                      <SelectItem value="21-50">21-50 cases</SelectItem>
-                      <SelectItem value="50+">50+ cases</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
-              {/* Message */}
               <div className="space-y-2">
-                <Label htmlFor="message" className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-primary" />
-                  <span>Additional Information</span>
-                </Label>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="Enter your phone number"
+                  className="h-12"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="message">Message</Label>
                 <Textarea
                   id="message"
                   value={formData.message}
                   onChange={(e) => handleInputChange('message', e.target.value)}
-                  placeholder="Tell us about your specific requirements, current challenges, or any questions you have..."
+                  placeholder="Tell us about your specific needs, challenges, or questions about Financial Compass..."
                   className="min-h-[120px] resize-none"
                 />
               </div>
 
-              {/* Demo Features */}
-              <div className="bg-secondary/10 rounded-lg p-6 border border-border">
-                <h3 className="text-lg font-semibold text-foreground mb-4">What You'll See in the Demo:</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-primary" />
-                    <span>Live bank statement parsing</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-primary" />
-                    <span>Fraud detection algorithms</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-primary" />
-                    <span>Export formats & reports</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-primary" />
-                    <span>API integration options</span>
-                  </div>
-                </div>
+              <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+                <h3 className="font-semibold text-foreground mb-2">What to expect in your demo:</h3>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Live demonstration of bank statement parsing</li>
+                  <li>• Overview of forensic analysis features</li>
+                  <li>• Custom workflow setup for your use case</li>
+                  <li>• Q&A session with our experts</li>
+                  <li>• Pricing and implementation discussion</li>
+                </ul>
               </div>
 
-              {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12"
+                disabled={isLoading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 font-semibold"
               >
-                {isSubmitting ? (
+                {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Submitting Request...
                   </>
                 ) : (
@@ -269,8 +213,8 @@ const RequestDemo = () => {
               </Button>
 
               <p className="text-xs text-muted-foreground text-center">
-                By submitting this form, you agree to be contacted by our team regarding your demo request.
-                We typically respond within 24 hours during business days.
+                By submitting this form, you agree to our Privacy Policy and Terms of Service.
+                We'll contact you within 24 hours to schedule your demo.
               </p>
             </form>
           </div>

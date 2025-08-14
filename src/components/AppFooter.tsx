@@ -8,16 +8,20 @@ const AppFooter = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <div className="w-6 h-6 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xs">BS</span>
+            <div className="relative w-6 h-6">
+              <img 
+                src="/lovable-uploads/5a960f10-b694-4aec-b3ad-b223afe5d08a.png" 
+                alt="Financial Compass"
+                className="w-6 h-6 object-contain"
+              />
             </div>
             <span className="text-lg font-bold text-primary">
-              BankStatementParser
+              Financial Compass
             </span>
           </div>
           
           <div className="flex space-x-6 text-sm text-muted-foreground">
-            <span>© 2025 BankStatementParser. All rights reserved.</span>
+            <span>© 2025 Financial Compass. All rights reserved.</span>
             <Link to="#" className="hover:text-primary transition-colors">
               Privacy Policy
             </Link>

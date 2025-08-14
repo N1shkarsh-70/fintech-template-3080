@@ -37,20 +37,24 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-fintech-navy flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-fintech-navy via-fintech-navy to-fintech-navy flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="absolute top-6 left-6">
           <BackButton />
         </div>
         
-        <div className="cosmic-card rounded-2xl p-8 shadow-2xl border border-primary/20">
+        <div className="bg-card/90 backdrop-blur-xl rounded-2xl p-8 border border-border shadow-2xl">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-primary to-primary-light rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">BSP</span>
+              <div className="relative w-12 h-12">
+                <img 
+                  src="/lovable-uploads/5a960f10-b694-4aec-b3ad-b223afe5d08a.png" 
+                  alt="Financial Compass"
+                  className="w-12 h-12 object-contain"
+                />
               </div>
-              <span className="text-2xl font-bold text-foreground">
-                BankStatementParser
+              <span className="text-2xl font-bold text-primary">
+                Financial Compass
               </span>
             </div>
             <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>

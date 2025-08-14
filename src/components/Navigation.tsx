@@ -39,11 +39,15 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">BS</span>
+            <div className="relative w-8 h-8">
+              <img 
+                src="/lovable-uploads/5a960f10-b694-4aec-b3ad-b223afe5d08a.png" 
+                alt="Financial Compass"
+                className="w-8 h-8 object-contain"
+              />
             </div>
             <span className="text-xl font-bold text-primary">
-              BankStatementParser
+              Financial Compass
             </span>
           </Link>
 
